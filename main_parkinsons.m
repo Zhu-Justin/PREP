@@ -4,9 +4,11 @@
 %% main_parkinsons
 %Nx7 matrices, saved by ID
 all_subjects = ["001A", "002A","004A", "010A", "115A", "118A", "120A", "215A", "218A", "220A", "031B", "079B", "111B", "211B", "121B", "221B"]';
+totalsubjects = length(all_subjects);
+peaknumbers = [];
 
 %%
-for subject = 1:length(all_subjects)
+for subject = 1:totalsubjects
     load(strcat('kav',extractBefore(all_subjects(subject),4),'_acc.mat'));
     load(strcat('kav',extractBefore(all_subjects(subject),4),'_gyro.mat'));
     load(strcat('kav',extractBefore(all_subjects(subject),4),'_orien.mat'));
@@ -18,7 +20,7 @@ end
 
 %%
 clf;
-for subject = 1:length(all_subjects)
+for subject = 1:totalsubjects
     id = char(all_subjects(subject));
     load(strcat('kav',id,'_main.mat'));
     
@@ -88,43 +90,128 @@ for subject = 1:length(all_subjects)
         title(strcat('kav',id));
         xlabel('f (Hz)'); ylabel('|P1(f)|');
     end
-
-
+    
+    
+%% Energy calculation (e.g. for peak detection)
+% energy = data_acc_sm(:,2).^2 + data_acc_sm(:,3).^2 + data_acc_sm(:,4).^2;
+%     if id(4) == 'A'
+%         figure(7); set(gcf, 'name', 'PD Energy');
+%         subplot(2, 5, subject);
+%         plot(matrix(:, 1),energy);        
+%         title(strcat('kav',id));
+%         xlabel('time (ms)'); ylabel('squared acceleration (m/s^2)');
+%     else
+%         figure(8); set(gcf, 'name', 'No-PD Energy');
+%         subplot(2, 3, subject-10);
+%         plot(matrix(:, 1),energy);        
+%         title(strcat('kav',id));
+%         xlabel('time (ms)'); ylabel('squared acceleration (m/s^2)');
+%     end
+    
 %% peak detection
+    energy = data_acc_sm(:,2).^2 + data_acc_sm(:,3).^2 + data_acc_sm(:,4).^2;
+    [peak, peakLocInds] = findpeaks(energy, 'minPeakHeight', 2.5, 'minPeakDistance', 20);
+    peaknumbers = [peaknumbers, length(peak)];
+    segmentA = 10;
+    segmentB = 0;
+    segmentStartIdxs = peakLocInds - segmentA;
+    segmentEndIdxs = peakLocInds + segmentB;
+    
+%     plot(peakLocs,peaks,'r.');
+    
+    
 
 
+     [xpeak, xpeakLocInds] = findpeaks(matrix(:,2), 'minPeakHeight', 2.5, 'minPeakDistance', 20);
+     segmentA = 10;
+     segmentB = 0;
+    segmentStartIdxs = xpeakLocInds - segmentA;
+    segmentEndIdxs = xpeakLocInds + segmentB;
+
+    if id(4) == 'A'
+        figure(9); set(gcf, 'name', 'PD Peak-Detection')
+        subplot(2,5,subject);
+        plot(matrix(:,1),energy);
+        hold on;
+        %plot(matrix(:,1),matrix(:,3), matrix(:,1),matrix(:,4));
+        timestamps = matrix(:,1);
+        peak_timestamps = timestamps(xpeakLocInds);
+        plot(peak_timestamps, peak, 'r.');
+        plot(xpeakLocs,peaks,'r.');
+        title(strcat('kav',id));
+        xlabel('time (ms)'); ylabel('acceleration (m/s^2)');
+        
+        start_seg = [timestamps(segmentStartIdxs)];
+        end_seg = [timestamps(segmentEndIdxs)];
+        
+        for s = 1:length(start_seg)
+            plot([start_seg(s),start_seg(s)],[-5,6],'m');
+        end
+        for e = 1:length(end_seg)
+            plot([end_seg(e),end_seg(e)],[-5,6],'m');
+        end
+    else
+        figure(10); set(gcf, 'name', 'No-PD Peak-Detection')
+        subplot(2, 3, subject-10);
+        plot(matrix(:,1),energy);
+        hold on;
+        %plot(matrix(:,1),matrix(:,3), matrix(:,1),matrix(:,4));
+        timestamps = matrix(:,1);
+        peak_timestamps = timestamps(peakLocInds);
+        plot(peak_timestamps, peak, 'r.');
+        title(strcat('kav',id));
+        xlabel('time (ms)'); ylabel('acceleration (m/s^2)');
+        
+        start_seg = [timestamps(segmentStartIdxs)];
+        end_seg = [timestamps(segmentEndIdxs)];
+        
+        for s = 1:length(start_seg)
+            plot([start_seg(s),start_seg(s)],[-5,6],'m');
+        end
+        for e = 1:length(end_seg)
+            plot([end_seg(e),end_seg(e)],[-5,6],'m');
+        end
+        
+    end
 end
-
-
+peaknumbers
 
 %%
-plot(data_acc_nts(:, 1), data_acc_nts_b(:, 2)); plot(data_acc_nts(:, 1), data_acc_nts_b(:, 3));
-title("Filtered Accelerometer Data w/ Wavelet");
-xlabel("m/s^2");
-ylabel("Time Stamp (ms)");
-legend('x', 'y', 'z');
-hold off;
+% plot(data_acc_nts(:, 1), data_acc_nts_b(:, 2)); plot(data_acc_nts(:, 1), data_acc_nts_b(:, 3));
+% title("Filtered Accelerometer Data w/ Wavelet");
+% xlabel("m/s^2");
+% ylabel("Time Stamp (ms)");
+% legend('x', 'y', 'z');
+% hold off;
 
-    %% wavelet transformation - ignore for now 
-%
-    wt = modwt(matrix(:, 2));
-    figure;
-    %analyze individual wavelets from the decomposition
-    for a  = 1:length(wt(:, 1)) 
-        
-%         subplot(6, 2, a); %m x n plot
-%         plot(wt(a, :));
-    end
-    % take out columns 7-11 for reconstruction
-    wtrec = zeros(size(wt));
-    wtrec(3:6, :) = wt(3:6, :);
-    modified_signal = imodwt(wtrec);    
-    if id(4) == 'A'
-        figure(5); subplot(2, 5, subject);
-        plot(matrix(:, 1),modified_signal);
-    else
-        figure(6); subplot(2, 3, subject-10);
-        plot(matrix(:, 1),modified_signal);
-    end
+%% Segmentation
+[peaks, peakLocs] = findpeaks(energy,'minPeakHeight',0.02,'minPeakDistance',80);
+segmentA = 60;
+segmentB = 80;
+segmentStartIdxs = peakLocs - segmentA;
+segmentEndIdxs = peakLocs + segmentB;
+%segmentStartings you have the segment indices.
+
+%     %% wavelet transformation - ignore for now 
+% %
+%     wt = modwt(matrix(:, 2));
+%     figure;
+%     %analyze individual wavelets from the decomposition
+%     for a  = 1:length(wt(:, 1)) 
+%         
+% %         subplot(6, 2, a); %m x n plot
+% %         plot(wt(a, :));
+%     end
+%     % take out columns 7-11 for reconstruction
+%     wtrec = zeros(size(wt));
+%     wtrec(3:6, :) = wt(3:6, :);
+%     modified_signal = imodwt(wtrec);    
+%     if id(4) == 'A'
+%         figure(5); subplot(2, 5, subject);
+%         plot(matrix(:, 1),modified_signal);
+%     else
+%         figure(6); subplot(2, 3, subject-10);
+%         plot(matrix(:, 1),modified_signal);
+%     end
 
 
