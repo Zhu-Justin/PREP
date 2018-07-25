@@ -44,23 +44,29 @@ patient_table = patient_labels(rows,vars);
 table2array(patient_labels(:,1));
 
 all_tests = sum(patient_labels.WalkingTests(rows));
-all_subjects = strings(all_tests,1);
+all_subjects = zeros(all_tests);
 subject_counter = 1
 for i = 1:patient_number
-    subject = char(strcat(patient_table.ID(i),patient_table.Group_A_Study_B_control_(i)));
+    subject = strcat(patient_table.ID(i),patient_table.Group_A_Study_B_control_(i));
+    subject_string = cell2mat(subject);
     if patient_table.WalkingTests(i) > 1
         total_walks = patient_table.WalkingTests(i);
         for walk = 1:total_walks
             strwalk = int2str(walk);
-            subject(4) = strwalk;
-            all_subjects(subject_counter) = subject;
+            subject_string(4) = strwalk;
+            all_subjects(subject_counter) = subject_string;
             subject_counter = subject_counter + 1;
         end
     else
-        all_subjects(subject_counter) = subject;
+        all_subjects(subject_counter) = subject_string;
         subject_counter = subject_counter + 1;
     end
 end
+
+
+patient_id = patient_labels.ID(rows)
+patient_group = patient_labels.Group_A_Study_B_control_(rows)
+patient_tests = patient_labels.WalkingTests(rows)
 
 all_subjects = all_subjects(all_subjects~="kav027B"&all_subjects~="kav028B");
 patient_tests = size(all_subjects);
