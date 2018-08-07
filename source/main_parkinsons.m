@@ -15,6 +15,7 @@
 %% Manual Variables to be optimized by Unsupervised Learning
 numFeatures = 15;
 minPeakDistance = 30;
+maxPeakDistance = 100;
 percent_test = .20; %20% test, 80% training
 
 
@@ -27,6 +28,8 @@ addpath(genpath('4-Classification'));
 addpath(genpath('5-Plotting'));
 addpath(genpath('mat_files'));
 addpath(genpath('metadata'));
+addpath(genpath('figures'));
+addpath(genpath('homedata'));
 currentdirectory = pwd;
 filedirectory = '/mat_files/';
 figuredirectory = '/figures/';
@@ -80,6 +83,7 @@ for subject = 1:length(all_subjects)
     matrix = interpolate_data(Tentries_acc(1:end-1, :), Tentries_gyro(1:end-1, :), Tentries_orien(1:end-1, :));
     save(strcat(currentdirectory,filedirectory,all_subjects(subject), '_main.mat'), 'matrix');
 end
+%% TODO: add in function that detects whether patient subject is walking for a minimum duration (e.g. thirty seconds or six steps)
 
 %% Initializing variables for feature extraction
 featureExtractor = FeatureExtractor();

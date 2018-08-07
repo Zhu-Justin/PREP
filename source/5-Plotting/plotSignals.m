@@ -4,13 +4,13 @@ if subject_name(7) == 'A'
     dtitle = ['PD ',dtitle];
     figure(figurenumber); set(gcf, 'name', dtitle);
     ha(subject) = subplot(2, 5, pd);
-    plot(matrix(:,1),matrix(:, gait),'r');  %matrix(:, 1),matrix(:, 2),'b',
+    plot(matrix(:,1),matrix(:, gait),'b');  %matrix(:, 1),matrix(:, 2),'b',
     title(subtitle);
 else
     dtitle = ['non-PD ',dtitle];
     figure(figurenumber+1); set(gcf, 'name', dtitle);
     ha(subject) = subplot(2, 3, non_pd);
-    plot(matrix(:,1),matrix(:, gait),'r');  %matrix(:, 1),matrix(:, 2),'b'
+    plot(matrix(:,1),matrix(:, gait),'');  %matrix(:, 1),matrix(:, 2),'b'
     title(subtitle);
     
 end
